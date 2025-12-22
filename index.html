@@ -7,32 +7,32 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
     <style>
-        /* RT Colors based on Brandbook description */
+        /* Corporate Colors based on provided Logo */
         :root {
-            --rt-purple-dark: #100C3B; /* Deep corporate background */
-            --rt-purple-light: #3A2F9D; /* Lighter gradient */
-            --rt-orange: #FF4F12;       /* Accent Action Color */
-            --rt-blue: #00A3E0;         /* Secondary Accent */
-            --bg-gray: #F2F3F7;         /* Clean background */
+            --rt-violet: #7F00FF;    /* Bright Purple Icon */
+            --rt-dark: #1D1F26;      /* Dark Grey Text bg */
+            --rt-orange: #FF7A00;    /* B2C Orange */
+            --bg-page: #F3F4F6;
         }
 
         body { 
-            background-color: var(--bg-gray); 
+            background-color: var(--bg-page); 
             color: #1F2937; 
-            font-family: 'Roboto', sans-serif; 
+            font-family: 'Inter', sans-serif; 
             overflow: hidden; 
         }
 
-        /* Branding Gradient Header */
+        /* Branding Header Background */
         .rt-header {
-            background: linear-gradient(135deg, var(--rt-purple-dark) 0%, var(--rt-purple-light) 100%);
+            background: white; /* Clean white header to make logo pop */
+            border-bottom: 1px solid rgba(0,0,0,0.05);
         }
 
         .card-shadow {
-            box-shadow: 0 8px 24px rgba(16, 12, 59, 0.08);
+            box-shadow: 0 4px 20px rgba(127, 0, 255, 0.08);
         }
 
         /* Animations */
@@ -46,12 +46,12 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; pointer-events: none; } }
 
-        /* Recording Pulse (RT Orange) */
-        .recording-pulse { animation: pulse-orange 1.5s infinite; background-color: #FFF7ED !important; border-color: var(--rt-orange) !important; }
-        @keyframes pulse-orange {
-            0% { box-shadow: 0 0 0 0 rgba(255, 79, 18, 0.4); }
-            70% { box-shadow: 0 0 0 15px rgba(255, 79, 18, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(255, 79, 18, 0); }
+        /* Recording Pulse (Violet) */
+        .recording-pulse { animation: pulse-violet 1.5s infinite; background-color: #F3E8FF !important; border-color: var(--rt-violet) !important; }
+        @keyframes pulse-violet {
+            0% { box-shadow: 0 0 0 0 rgba(127, 0, 255, 0.4); }
+            70% { box-shadow: 0 0 0 15px rgba(127, 0, 255, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(127, 0, 255, 0); }
         }
 
         /* Audio Player Styling */
@@ -60,44 +60,85 @@
         .hidden { display: none !important; }
         
         /* Bottom Nav Logic */
-        .nav-btn.active { color: var(--rt-orange); }
+        .nav-btn.active { color: var(--rt-violet); }
         .nav-btn.active i { transform: scale(1.1); transition: transform 0.2s; }
         .nav-btn { transition: all 0.2s; color: #9CA3AF; }
         
         /* Onboarding Overlay */
         .onboarding-overlay {
-            background: rgba(16, 12, 59, 0.96);
+            background: rgba(29, 31, 38, 0.98); /* rt-dark */
             backdrop-filter: blur(5px);
         }
         .step-dot { transition: all 0.3s; }
-        .step-dot.active { background-color: var(--rt-orange); width: 24px; }
+        .step-dot.active { background-color: var(--rt-violet); width: 24px; }
+
+        /* CSS LOGO CONSTRUCTION */
+        .logo-container { display: flex; align-items: center; height: 42px; }
+        
+        .logo-icon {
+            width: 42px; height: 42px; border-radius: 50%;
+            background-color: var(--rt-violet);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 10; position: relative;
+        }
+        /* The brackets inside the logo */
+        .logo-brackets {
+            width: 20px; height: 20px; border: 2px solid white; border-radius: 50%;
+            border-top-color: transparent; border-bottom-color: transparent;
+            transform: rotate(-45deg);
+        }
+
+        .logo-text {
+            background-color: var(--rt-dark);
+            color: white;
+            height: 34px;
+            display: flex; flex-col: column; justify-content: center;
+            padding-left: 24px; padding-right: 12px;
+            margin-left: -18px; /* overlap */
+            border-top-left-radius: 4px; border-bottom-left-radius: 4px;
+            line-height: 0.9;
+            z-index: 5;
+        }
+        .logo-text span { display: block; }
+        
+        .logo-b2c {
+            background-color: var(--rt-orange);
+            color: white;
+            height: 34px;
+            display: flex; align-items: center; justify-content: center;
+            padding: 0 8px;
+            border-top-right-radius: 8px; border-bottom-right-radius: 8px;
+            font-weight: 700; font-size: 14px;
+            z-index: 5;
+        }
+
     </style>
 </head>
 <body class="h-screen w-full flex flex-col relative">
 
-    <!-- ONBOARDING (Instruction) -->
+    <!-- ONBOARDING -->
     <div id="onboarding" class="absolute inset-0 z-50 onboarding-overlay flex flex-col items-center justify-center p-8 text-white hidden">
         <div class="w-full max-w-sm flex flex-col items-center text-center">
             
             <!-- Slide 1 -->
             <div class="onboarding-step fade-in" id="step-1">
-                <div class="w-24 h-24 rounded-full bg-white/10 flex items-center justify-center mb-6 mx-auto border border-white/20">
-                    <i class="fas fa-hand-holding-dollar text-4xl text-[#00A3E0]"></i>
+                <div class="w-24 h-24 rounded-full bg-[#7F00FF]/20 flex items-center justify-center mb-6 mx-auto border border-[#7F00FF]/40">
+                    <i class="fas fa-graduation-cap text-4xl text-[#7F00FF]"></i>
                 </div>
-                <h2 class="text-2xl font-bold mb-3">Тренажер продаж</h2>
+                <h2 class="text-2xl font-bold mb-3">Онлайн Университет</h2>
                 <p class="text-white/70 text-sm leading-relaxed mb-8">
-                    Добро пожаловать в цифровой ринг! Здесь мы отрабатываем возражения клиентов и выбираем лучшие аргументы.
+                    Тренажер B2C продаж. Отрабатывай возражения, голосуй за лучшие ответы и попадай в топ.
                 </p>
             </div>
 
             <!-- Slide 2 -->
             <div class="onboarding-step hidden fade-in" id="step-2">
                 <div class="w-24 h-24 rounded-full bg-white/10 flex items-center justify-center mb-6 mx-auto border border-white/20">
-                    <i class="fas fa-gavel text-4xl text-[#FF4F12]"></i>
+                    <i class="fas fa-gavel text-4xl text-[#FF7A00]"></i>
                 </div>
                 <h2 class="text-2xl font-bold mb-3">Этап 1: Голосование</h2>
                 <p class="text-white/70 text-sm leading-relaxed mb-8">
-                    Прослушай два ответа коллег на одно возражение. Выбери тот, который звучит убедительнее.
+                    Слушай ответы коллег и выбирай, кто отработал возражение убедительнее.
                 </p>
             </div>
 
@@ -106,9 +147,9 @@
                 <div class="w-24 h-24 rounded-full bg-white/10 flex items-center justify-center mb-6 mx-auto border border-white/20">
                     <i class="fas fa-microphone text-4xl text-green-400"></i>
                 </div>
-                <h2 class="text-2xl font-bold mb-3">Этап 2: Твой ход</h2>
+                <h2 class="text-2xl font-bold mb-3">Этап 2: Запись</h2>
                 <p class="text-white/70 text-sm leading-relaxed mb-8">
-                    Получи случайное возражение клиента и запиши свой голосовой ответ. Лучшие попадут в топ!
+                    Получи кейс клиента и запиши свой ответ. Лучшие попадут в рейтинг недели.
                 </p>
             </div>
 
@@ -119,77 +160,80 @@
                 <div class="h-2 w-2 rounded-full bg-white/30 step-dot" id="dot-3"></div>
             </div>
 
-            <button onclick="nextStep()" id="onboarding-btn" class="w-full py-4 bg-[#FF4F12] rounded-xl font-bold uppercase tracking-wider shadow-lg hover:bg-orange-600 transition-colors">
+            <button onclick="nextStep()" id="onboarding-btn" class="w-full py-4 bg-[#7F00FF] rounded-xl font-bold uppercase tracking-wider shadow-lg hover:bg-purple-600 transition-colors">
                 Далее
             </button>
         </div>
     </div>
 
     <!-- Header -->
-    <div class="rt-header pt-4 pb-6 px-6 rounded-b-[2rem] shadow-lg z-20 relative text-white">
-        <div class="flex justify-between items-center mb-4">
-            <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
-                    <i class="fas fa-graduation-cap text-xs"></i>
+    <div class="rt-header pt-4 pb-2 px-4 shadow-sm z-20 relative">
+        <div class="flex justify-between items-center mb-3">
+            <!-- CSS Logo Implementation -->
+            <div class="logo-container">
+                <div class="logo-icon">
+                    <div class="logo-brackets"></div>
                 </div>
-                <div>
-                    <h1 class="text-lg font-bold leading-none">Sales Arena</h1>
-                    <p class="text-[10px] text-blue-200 opacity-80 uppercase tracking-widest mt-1">Ростелеком</p>
+                <div class="logo-text">
+                    <span class="text-[10px] font-medium opacity-90">онлайн</span>
+                    <span class="text-[12px] font-bold -mt-0.5">университет</span>
                 </div>
+                <div class="logo-b2c">B2C</div>
             </div>
-            <div class="bg-black/20 px-3 py-1.5 rounded-full backdrop-blur-md border border-white/10">
-                <span class="text-[10px] font-bold text-[#FF4F12] uppercase" id="step-label">Голосование</span>
+
+            <div class="bg-gray-100 px-3 py-1.5 rounded-lg">
+                <span class="text-[10px] font-bold text-[#7F00FF] uppercase" id="step-label">Загрузка...</span>
             </div>
         </div>
         
         <!-- Progress Bar -->
-        <div class="w-full h-1.5 bg-black/20 rounded-full overflow-hidden">
-            <div id="progress-line" class="h-full bg-gradient-to-r from-[#FF4F12] to-[#FF8F6B] w-1/4 transition-all duration-500 rounded-full"></div>
+        <div class="w-full h-1 bg-gray-200 rounded-full overflow-hidden mb-2">
+            <div id="progress-line" class="h-full bg-[#7F00FF] w-0 transition-all duration-500 rounded-full"></div>
         </div>
     </div>
 
     <!-- Main Content Area -->
-    <div class="flex-1 relative overflow-hidden bg-[#F2F3F7]">
+    <div class="flex-1 relative overflow-hidden bg-[#F3F4F6]">
         
         <!-- VIEW: VOTING (BATTLE) -->
         <div id="view-vote" class="absolute inset-0 flex flex-col p-4 pb-24 hidden fade-in overflow-y-auto">
             <div class="text-center text-[10px] text-gray-400 font-bold mb-3 mt-2 uppercase tracking-widest">
-                Раунд <span id="vote-counter" class="text-[#100C3B] text-sm">1</span> / <span id="vote-total">3</span>
+                Раунд <span id="vote-counter" class="text-[#1D1F26] text-sm">1</span> / <span id="vote-total">3</span>
             </div>
 
             <div class="flex-1 flex flex-col gap-4 relative justify-center">
                 
                 <!-- VS Badge -->
                 <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-30 pointer-events-none">
-                    <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center border-4 border-[#F2F3F7] shadow-xl text-sm font-black text-[#100C3B] italic">
+                    <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center border-4 border-[#F3F4F6] shadow-xl text-sm font-black text-[#7F00FF] italic">
                         VS
                     </div>
                 </div>
 
                 <!-- Card 1 -->
-                <div id="card-1" class="flex-1 bg-white rounded-2xl p-5 flex flex-col justify-between transition-all duration-300 card-shadow border-l-4 border-[#3A2F9D] relative">
+                <div id="card-1" class="flex-1 bg-white rounded-2xl p-5 flex flex-col justify-between transition-all duration-300 card-shadow border-l-4 border-[#7F00FF] relative">
                     <div class="mb-2">
-                        <div class="text-[9px] text-[#3A2F9D] uppercase font-bold tracking-widest opacity-60">Возражение</div>
+                        <div class="text-[9px] text-[#7F00FF] uppercase font-bold tracking-widest opacity-60">Возражение</div>
                         <div class="text-sm font-bold text-gray-800 leading-tight mt-1" id="topic-1">...</div>
                     </div>
                     <div class="flex flex-col items-center w-full">
                         <audio id="audio-1" controls></audio>
-                        <button onclick="vote(0)" class="mt-4 w-full py-3 bg-[#EEF2FF] rounded-xl font-bold text-[10px] text-[#3A2F9D] hover:bg-[#3A2F9D] hover:text-white uppercase tracking-wider transition-all">
+                        <button onclick="vote(0)" class="mt-4 w-full py-3 bg-[#F3E8FF] rounded-xl font-bold text-[10px] text-[#7F00FF] hover:bg-[#7F00FF] hover:text-white uppercase tracking-wider transition-all">
                             Выбрать этот ответ
                         </button>
                     </div>
                 </div>
 
                 <!-- Card 2 -->
-                <div id="card-2" class="flex-1 bg-white rounded-2xl p-5 flex flex-col justify-between transition-all duration-300 card-shadow border-l-4 border-[#FF4F12] relative">
+                <div id="card-2" class="flex-1 bg-white rounded-2xl p-5 flex flex-col justify-between transition-all duration-300 card-shadow border-l-4 border-[#FF7A00] relative">
                     <div class="flex flex-col items-center w-full order-2">
-                        <button onclick="vote(1)" class="mb-4 w-full py-3 bg-[#FFF7ED] rounded-xl font-bold text-[10px] text-[#FF4F12] hover:bg-[#FF4F12] hover:text-white uppercase tracking-wider transition-all">
+                        <button onclick="vote(1)" class="mb-4 w-full py-3 bg-[#FFF7ED] rounded-xl font-bold text-[10px] text-[#FF7A00] hover:bg-[#FF7A00] hover:text-white uppercase tracking-wider transition-all">
                             Выбрать этот ответ
                         </button>
                         <audio id="audio-2" controls></audio>
                     </div>
                     <div class="mb-2 order-1 border-b border-gray-100 pb-2">
-                        <div class="text-[9px] text-[#FF4F12] uppercase font-bold tracking-widest opacity-60">Возражение</div>
+                        <div class="text-[9px] text-[#FF7A00] uppercase font-bold tracking-widest opacity-60">Возражение</div>
                         <div class="text-sm font-bold text-gray-800 leading-tight mt-1" id="topic-2">...</div>
                     </div>
                 </div>
@@ -200,26 +244,26 @@
         <div id="view-record" class="absolute inset-0 flex flex-col p-6 pb-24 hidden fade-in justify-center items-center text-center">
             
             <div class="bg-white w-full p-8 rounded-3xl card-shadow relative overflow-hidden mb-10 border border-white/50">
-                <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-[#100C3B] to-[#FF4F12]"></div>
-                <div class="inline-block px-3 py-1 bg-gray-100 text-gray-500 rounded-full text-[9px] font-bold uppercase tracking-widest mb-4">Ваша очередь</div>
+                <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-[#7F00FF] to-[#FF7A00]"></div>
+                <div class="inline-block px-3 py-1 bg-gray-100 text-gray-500 rounded-full text-[9px] font-bold uppercase tracking-widest mb-4">Ваш ход</div>
                 <div class="text-[10px] text-gray-400 mb-2 uppercase tracking-wide">Клиент говорит:</div>
-                <p class="text-xl font-serif italic text-[#100C3B] leading-relaxed" id="scenario-text">"..."</p>
+                <p class="text-xl font-serif italic text-[#1D1F26] leading-relaxed" id="scenario-text">"..."</p>
             </div>
 
             <div class="relative">
                 <!-- Record Button -->
-                <button id="record-btn" class="w-24 h-24 rounded-full bg-gradient-to-br from-[#FF4F12] to-[#FF8F6B] flex items-center justify-center shadow-xl shadow-orange-500/30 text-white active:scale-95 transition-transform z-10 relative border-4 border-[#F2F3F7]">
+                <button id="record-btn" class="w-24 h-24 rounded-full bg-gradient-to-br from-[#7F00FF] to-[#6002EE] flex items-center justify-center shadow-xl shadow-purple-500/30 text-white active:scale-95 transition-transform z-10 relative border-4 border-[#F3F4F6]">
                     <i class="fas fa-microphone text-3xl" id="mic-icon"></i>
                 </button>
-                <div class="mt-6 text-3xl font-mono text-[#100C3B] font-bold hidden" id="recording-timer">00:00</div>
-                <p class="mt-4 text-xs text-gray-400 max-w-[200px]" id="rec-hint">Нажмите микрофон, чтобы начать запись ответа</p>
+                <div class="mt-6 text-3xl font-mono text-[#1D1F26] font-bold hidden" id="recording-timer">00:00</div>
+                <p class="mt-4 text-xs text-gray-400 max-w-[200px]" id="rec-hint">Нажмите микрофон, чтобы начать запись</p>
             </div>
         </div>
 
         <!-- VIEW: LEADERBOARD -->
         <div id="view-leaderboard" class="absolute inset-0 flex flex-col p-4 pb-24 hidden fade-in">
-            <h2 class="text-lg font-bold text-[#100C3B] mb-4 pl-2 flex items-center gap-2">
-                <i class="fas fa-trophy text-[#FF4F12]"></i> Лидеры недели
+            <h2 class="text-lg font-bold text-[#1D1F26] mb-4 pl-2 flex items-center gap-2">
+                <i class="fas fa-chart-line text-[#7F00FF]"></i> Топ сотрудников
             </h2>
             <div class="flex-1 overflow-y-auto pr-1 space-y-3 pb-4" id="leaders-list">
                 <!-- Dynamic Content -->
@@ -231,10 +275,10 @@
             <div class="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mb-6 shadow-lg shadow-green-500/20">
                 <i class="fas fa-check text-4xl text-green-500"></i>
             </div>
-            <h2 class="text-2xl font-bold text-[#100C3B] mb-2">Отлично!</h2>
-            <p class="text-gray-500 text-center px-4 leading-relaxed mb-8 text-sm">Ваш ответ сохранен. Теперь его оценят коллеги в следующем раунде голосования.</p>
-            <button onclick="finishGame()" class="px-8 py-4 bg-[#100C3B] rounded-xl text-white font-bold shadow-lg w-full max-w-xs uppercase text-xs tracking-widest hover:bg-[#3A2F9D] transition-colors">
-                К результатам
+            <h2 class="text-2xl font-bold text-[#1D1F26] mb-2">Принято!</h2>
+            <p class="text-gray-500 text-center px-4 leading-relaxed mb-8 text-sm">Ваш ответ сохранен. Результаты голосования появятся в общем рейтинге.</p>
+            <button onclick="finishGame()" class="px-8 py-4 bg-[#7F00FF] rounded-xl text-white font-bold shadow-lg w-full max-w-xs uppercase text-xs tracking-widest hover:bg-[#6002EE] transition-colors">
+                К рейтингу
             </button>
         </div>
     </div>
@@ -243,24 +287,24 @@
     <div class="absolute bottom-6 left-6 right-6 h-16 bg-white rounded-2xl card-shadow flex items-center justify-around z-40" id="bottom-menu">
         <button id="nav-battle" class="nav-btn active flex flex-col items-center gap-1 w-16">
             <i class="fas fa-gavel text-lg"></i>
-            <span class="text-[9px] font-bold uppercase tracking-wide">Голосование</span>
+            <span class="text-[9px] font-bold uppercase tracking-wide">Голоса</span>
         </button>
         
         <div class="relative -top-6">
-            <button id="nav-record" class="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center shadow-inner border-4 border-[#F2F3F7] text-gray-300 cursor-not-allowed transition-all">
+            <button id="nav-record" class="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center shadow-inner border-4 border-[#F3F4F6] text-gray-300 cursor-not-allowed transition-all">
                 <i class="fas fa-microphone text-xl"></i>
             </button>
         </div>
         
         <button id="nav-leaders" class="nav-btn text-gray-300 cursor-not-allowed flex flex-col items-center gap-1 w-16">
-            <i class="fas fa-chart-bar text-lg"></i>
+            <i class="fas fa-chart-pie text-lg"></i>
             <span class="text-[9px] font-bold uppercase tracking-wide">Рейтинг</span>
         </button>
     </div>
 
     <!-- Loader -->
     <div id="loader" class="absolute inset-0 bg-white z-40 flex flex-col items-center justify-center hidden">
-        <div class="w-10 h-10 border-4 border-gray-100 border-t-[#FF4F12] rounded-full animate-spin mb-4"></div>
+        <div class="w-10 h-10 border-4 border-gray-100 border-t-[#7F00FF] rounded-full animate-spin mb-4"></div>
         <div class="text-xs font-bold text-gray-400 uppercase tracking-widest">Загрузка...</div>
     </div>
 
@@ -273,7 +317,6 @@
         tg.expand();
         tg.enableClosingConfirmation();
 
-        // СЦЕНАРИИ РОСТЕЛЕКОМ
         const SCENARIOS = [
             "У нас уже подключен другой провайдер, нас всё устраивает.",
             "Мне не нужно телевидение, я смотрю только YouTube.",
@@ -297,11 +340,11 @@
 
         // --- ONBOARDING LOGIC ---
         function checkOnboarding() {
-            // Проверяем, видел ли пользователь инструкцию
+            // Чтобы показать онбординг снова - раскомментируйте: localStorage.removeItem('rt_trainer_onboarding');
             if (!localStorage.getItem('rt_trainer_onboarding')) {
                 document.getElementById('onboarding').classList.remove('hidden');
             } else {
-                loadBattle(); // Если видел, сразу грузим битву
+                loadBattle(); 
             }
         }
 
@@ -312,13 +355,11 @@
             onboardingStep++;
             
             if (onboardingStep > 3) {
-                // Finish Onboarding
                 document.getElementById('onboarding').classList.add('fade-out');
                 setTimeout(() => document.getElementById('onboarding').classList.add('hidden'), 300);
                 localStorage.setItem('rt_trainer_onboarding', 'true');
                 loadBattle();
             } else {
-                // Next Slide
                 document.getElementById(`step-${onboardingStep}`).classList.remove('hidden');
                 document.getElementById(`dot-${onboardingStep}`).classList.add('active');
                 if(onboardingStep === 3) document.getElementById('onboarding-btn').innerText = "НАЧАТЬ";
@@ -351,7 +392,7 @@
 
             if (gameState === 'voting') {
                 stepLabel.innerText = "Голосование";
-                stepLabel.className = "text-[10px] font-bold text-[#FF4F12] uppercase";
+                stepLabel.className = "text-[10px] font-bold text-[#7F00FF] uppercase";
                 
                 let percent = (votesDone / VOTES_REQUIRED) * 50;
                 progressBar.style.width = `${percent}%`;
@@ -365,7 +406,7 @@
 
             } else if (gameState === 'recording') {
                 stepLabel.innerText = "Ваш ответ";
-                stepLabel.className = "text-[10px] font-bold text-[#00A3E0] uppercase";
+                stepLabel.className = "text-[10px] font-bold text-[#FF7A00] uppercase";
                 
                 progressBar.style.width = "75%";
                 
@@ -394,10 +435,10 @@
             
             if (isCenter) {
                 if (isActive) {
-                    el.className = "w-14 h-14 rounded-full bg-[#100C3B] flex items-center justify-center shadow-lg shadow-indigo-900/30 border-4 border-[#F2F3F7] text-white hover:scale-105 transition-transform cursor-pointer";
+                    el.className = "w-14 h-14 rounded-full bg-[#7F00FF] flex items-center justify-center shadow-lg shadow-purple-900/30 border-4 border-[#F3F4F6] text-white hover:scale-105 transition-transform cursor-pointer";
                     el.onclick = startScenarioMode;
                 } else {
-                    el.className = "w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center shadow-inner border-4 border-[#F2F3F7] text-gray-300 cursor-not-allowed";
+                    el.className = "w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center shadow-inner border-4 border-[#F3F4F6] text-gray-300 cursor-not-allowed";
                 }
             } else {
                 if (isActive) {
@@ -595,10 +636,10 @@
                     let medal = '';
                     if(index === 0) medal = '<i class="fas fa-trophy text-yellow-500"></i>';
                     else if(index === 1) medal = '<i class="fas fa-medal text-gray-400"></i>';
-                    else if(index === 2) medal = '<i class="fas fa-medal text-[#FF4F12]"></i>';
+                    else if(index === 2) medal = '<i class="fas fa-medal text-[#FF7A00]"></i>';
                     else medal = `<span class="text-gray-400 font-bold">#${index+1}</span>`;
 
-                    const avatarUrl = `https://api.dicebear.com/7.x/initials/svg?seed=${user.name}&backgroundColor=100C3B,00A3E0,FF4F12`;
+                    const avatarUrl = `https://api.dicebear.com/7.x/initials/svg?seed=${user.name}&backgroundColor=7F00FF,1D1F26,FF7A00`;
 
                     const row = `
                         <div class="bg-white p-3 rounded-xl card-shadow flex items-center gap-3 border border-gray-100">
@@ -609,13 +650,13 @@
                             </div>
 
                             <div class="flex-1 min-w-0">
-                                <div class="text-sm font-bold text-[#100C3B] truncate">${user.name}</div>
+                                <div class="text-sm font-bold text-[#1D1F26] truncate">${user.name}</div>
                                 <div class="text-[10px] text-gray-500 truncate mb-1">${user.topic}</div>
                                 <audio src="${user.url}" controls class="h-6 w-full" style="margin:0;"></audio>
                             </div>
                             
                             <div class="flex flex-col items-center px-2 border-l border-gray-100 min-w-[40px]">
-                                <i class="fas fa-heart text-[#FF4F12] text-xs mb-1"></i>
+                                <i class="fas fa-heart text-[#7F00FF] text-xs mb-1"></i>
                                 <span class="text-sm font-bold text-gray-700">${user.votes}</span>
                             </div>
                         </div>
