@@ -7,12 +7,20 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
     
     <style>
-        /* RT Colors: Dark Blue #1F1A60, Orange #FF4F12, Light Blue #00A3E0 */
+        /* RT Colors based on Brandbook description */
+        :root {
+            --rt-purple-dark: #100C3B; /* Deep corporate background */
+            --rt-purple-light: #3A2F9D; /* Lighter gradient */
+            --rt-orange: #FF4F12;       /* Accent Action Color */
+            --rt-blue: #00A3E0;         /* Secondary Accent */
+            --bg-gray: #F2F3F7;         /* Clean background */
+        }
+
         body { 
-            background-color: #F3F4F6; 
+            background-color: var(--bg-gray); 
             color: #1F2937; 
             font-family: 'Roboto', sans-serif; 
             overflow: hidden; 
@@ -20,24 +28,26 @@
 
         /* Branding Gradient Header */
         .rt-header {
-            background: linear-gradient(135deg, #1F1A60 0%, #3B3294 100%);
+            background: linear-gradient(135deg, var(--rt-purple-dark) 0%, var(--rt-purple-light) 100%);
         }
 
         .card-shadow {
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 8px 24px rgba(16, 12, 59, 0.08);
         }
 
         /* Animations */
-        .fly-out-left { animation: flyOutLeft 0.5s ease-in forwards; }
-        .fly-out-right { animation: flyOutRight 0.5s ease-in forwards; }
+        .fly-out-left { animation: flyOutLeft 0.5s cubic-bezier(0.55, 0.085, 0.68, 0.53) forwards; }
+        .fly-out-right { animation: flyOutRight 0.5s cubic-bezier(0.55, 0.085, 0.68, 0.53) forwards; }
         .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        .fade-out { animation: fadeOut 0.3s ease-in forwards; }
         
-        @keyframes flyOutLeft { to { transform: translateX(-120%) rotate(-5deg); opacity: 0; } }
-        @keyframes flyOutRight { to { transform: translateX(120%) rotate(5deg); opacity: 0; } }
+        @keyframes flyOutLeft { to { transform: translateX(-120%) rotate(-10deg); opacity: 0; } }
+        @keyframes flyOutRight { to { transform: translateX(120%) rotate(10deg); opacity: 0; } }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; pointer-events: none; } }
 
-        /* Recording Pulse (Orange) */
-        .recording-pulse { animation: pulse-orange 1.5s infinite; background-color: #FFF7ED !important; border-color: #FF4F12 !important; }
+        /* Recording Pulse (RT Orange) */
+        .recording-pulse { animation: pulse-orange 1.5s infinite; background-color: #FFF7ED !important; border-color: var(--rt-orange) !important; }
         @keyframes pulse-orange {
             0% { box-shadow: 0 0 0 0 rgba(255, 79, 18, 0.4); }
             70% { box-shadow: 0 0 0 15px rgba(255, 79, 18, 0); }
@@ -45,82 +55,142 @@
         }
 
         /* Audio Player Styling */
-        audio { height: 36px; width: 100%; border-radius: 20px; margin-top: 8px; }
-        audio::-webkit-media-controls-panel { background-color: #F3F4F6; }
-
+        audio { height: 40px; width: 100%; border-radius: 8px; margin-top: 8px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.05)); }
+        
         .hidden { display: none !important; }
         
-        .nav-btn.active { color: #FF4F12; }
-        .nav-btn { transition: all 0.2s; }
+        /* Bottom Nav Logic */
+        .nav-btn.active { color: var(--rt-orange); }
+        .nav-btn.active i { transform: scale(1.1); transition: transform 0.2s; }
+        .nav-btn { transition: all 0.2s; color: #9CA3AF; }
         
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 4px; }
+        /* Onboarding Overlay */
+        .onboarding-overlay {
+            background: rgba(16, 12, 59, 0.96);
+            backdrop-filter: blur(5px);
+        }
+        .step-dot { transition: all 0.3s; }
+        .step-dot.active { background-color: var(--rt-orange); width: 24px; }
     </style>
 </head>
 <body class="h-screen w-full flex flex-col relative">
 
+    <!-- ONBOARDING (Instruction) -->
+    <div id="onboarding" class="absolute inset-0 z-50 onboarding-overlay flex flex-col items-center justify-center p-8 text-white hidden">
+        <div class="w-full max-w-sm flex flex-col items-center text-center">
+            
+            <!-- Slide 1 -->
+            <div class="onboarding-step fade-in" id="step-1">
+                <div class="w-24 h-24 rounded-full bg-white/10 flex items-center justify-center mb-6 mx-auto border border-white/20">
+                    <i class="fas fa-hand-holding-dollar text-4xl text-[#00A3E0]"></i>
+                </div>
+                <h2 class="text-2xl font-bold mb-3">Тренажер продаж</h2>
+                <p class="text-white/70 text-sm leading-relaxed mb-8">
+                    Добро пожаловать в цифровой ринг! Здесь мы отрабатываем возражения клиентов и выбираем лучшие аргументы.
+                </p>
+            </div>
+
+            <!-- Slide 2 -->
+            <div class="onboarding-step hidden fade-in" id="step-2">
+                <div class="w-24 h-24 rounded-full bg-white/10 flex items-center justify-center mb-6 mx-auto border border-white/20">
+                    <i class="fas fa-gavel text-4xl text-[#FF4F12]"></i>
+                </div>
+                <h2 class="text-2xl font-bold mb-3">Этап 1: Голосование</h2>
+                <p class="text-white/70 text-sm leading-relaxed mb-8">
+                    Прослушай два ответа коллег на одно возражение. Выбери тот, который звучит убедительнее.
+                </p>
+            </div>
+
+            <!-- Slide 3 -->
+            <div class="onboarding-step hidden fade-in" id="step-3">
+                <div class="w-24 h-24 rounded-full bg-white/10 flex items-center justify-center mb-6 mx-auto border border-white/20">
+                    <i class="fas fa-microphone text-4xl text-green-400"></i>
+                </div>
+                <h2 class="text-2xl font-bold mb-3">Этап 2: Твой ход</h2>
+                <p class="text-white/70 text-sm leading-relaxed mb-8">
+                    Получи случайное возражение клиента и запиши свой голосовой ответ. Лучшие попадут в топ!
+                </p>
+            </div>
+
+            <!-- Dots -->
+            <div class="flex gap-2 mb-8">
+                <div class="h-2 w-2 rounded-full bg-white/30 step-dot active" id="dot-1"></div>
+                <div class="h-2 w-2 rounded-full bg-white/30 step-dot" id="dot-2"></div>
+                <div class="h-2 w-2 rounded-full bg-white/30 step-dot" id="dot-3"></div>
+            </div>
+
+            <button onclick="nextStep()" id="onboarding-btn" class="w-full py-4 bg-[#FF4F12] rounded-xl font-bold uppercase tracking-wider shadow-lg hover:bg-orange-600 transition-colors">
+                Далее
+            </button>
+        </div>
+    </div>
+
     <!-- Header -->
     <div class="rt-header pt-4 pb-6 px-6 rounded-b-[2rem] shadow-lg z-20 relative text-white">
         <div class="flex justify-between items-center mb-4">
-            <div>
-                <h1 class="text-xl font-bold tracking-tight">Тренажер</h1>
-                <p class="text-xs text-blue-200 opacity-80">Отработка возражений</p>
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
+                    <i class="fas fa-graduation-cap text-xs"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold leading-none">Sales Arena</h1>
+                    <p class="text-[10px] text-blue-200 opacity-80 uppercase tracking-widest mt-1">Ростелеком</p>
+                </div>
             </div>
-            <div class="bg-white/10 px-3 py-1 rounded-full backdrop-blur-sm">
-                <span class="text-xs font-semibold text-orange-400" id="step-label">Судейство</span>
+            <div class="bg-black/20 px-3 py-1.5 rounded-full backdrop-blur-md border border-white/10">
+                <span class="text-[10px] font-bold text-[#FF4F12] uppercase" id="step-label">Голосование</span>
             </div>
         </div>
         
         <!-- Progress Bar -->
         <div class="w-full h-1.5 bg-black/20 rounded-full overflow-hidden">
-            <div id="progress-line" class="h-full bg-gradient-to-r from-orange-400 to-orange-600 w-1/4 transition-all duration-500 rounded-full"></div>
+            <div id="progress-line" class="h-full bg-gradient-to-r from-[#FF4F12] to-[#FF8F6B] w-1/4 transition-all duration-500 rounded-full"></div>
         </div>
     </div>
 
     <!-- Main Content Area -->
-    <div class="flex-1 relative overflow-hidden bg-[#F3F4F6]">
+    <div class="flex-1 relative overflow-hidden bg-[#F2F3F7]">
         
         <!-- VIEW: VOTING (BATTLE) -->
         <div id="view-vote" class="absolute inset-0 flex flex-col p-4 pb-24 hidden fade-in overflow-y-auto">
-            <div class="text-center text-xs text-gray-400 font-medium mb-3 mt-2 uppercase tracking-wide">
-                Голос <span id="vote-counter" class="text-gray-800 font-bold">1</span> из <span id="vote-total">3</span>
+            <div class="text-center text-[10px] text-gray-400 font-bold mb-3 mt-2 uppercase tracking-widest">
+                Раунд <span id="vote-counter" class="text-[#100C3B] text-sm">1</span> / <span id="vote-total">3</span>
             </div>
 
             <div class="flex-1 flex flex-col gap-4 relative justify-center">
                 
                 <!-- VS Badge -->
                 <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-30 pointer-events-none">
-                    <div class="w-12 h-12 rounded-full bg-white flex items-center justify-center border-4 border-[#F3F4F6] shadow-xl text-lg font-black text-[#1F1A60] italic">
+                    <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center border-4 border-[#F2F3F7] shadow-xl text-sm font-black text-[#100C3B] italic">
                         VS
                     </div>
                 </div>
 
                 <!-- Card 1 -->
-                <div id="card-1" class="flex-1 bg-white rounded-2xl p-5 flex flex-col justify-between transition-all duration-300 card-shadow border-l-4 border-blue-500 relative">
+                <div id="card-1" class="flex-1 bg-white rounded-2xl p-5 flex flex-col justify-between transition-all duration-300 card-shadow border-l-4 border-[#3A2F9D] relative">
                     <div class="mb-2">
-                        <div class="text-[10px] text-blue-500 uppercase font-bold tracking-wider">Тема раунда</div>
-                        <div class="text-sm font-semibold text-gray-800 leading-tight mt-1 line-clamp-2" id="topic-1">...</div>
+                        <div class="text-[9px] text-[#3A2F9D] uppercase font-bold tracking-widest opacity-60">Возражение</div>
+                        <div class="text-sm font-bold text-gray-800 leading-tight mt-1" id="topic-1">...</div>
                     </div>
                     <div class="flex flex-col items-center w-full">
                         <audio id="audio-1" controls></audio>
-                        <button onclick="vote(0)" class="mt-4 w-full py-3 bg-blue-50 rounded-xl font-bold text-xs text-blue-700 hover:bg-blue-100 uppercase tracking-wider transition-colors">
+                        <button onclick="vote(0)" class="mt-4 w-full py-3 bg-[#EEF2FF] rounded-xl font-bold text-[10px] text-[#3A2F9D] hover:bg-[#3A2F9D] hover:text-white uppercase tracking-wider transition-all">
                             Выбрать этот ответ
                         </button>
                     </div>
                 </div>
 
                 <!-- Card 2 -->
-                <div id="card-2" class="flex-1 bg-white rounded-2xl p-5 flex flex-col justify-between transition-all duration-300 card-shadow border-l-4 border-orange-500 relative">
+                <div id="card-2" class="flex-1 bg-white rounded-2xl p-5 flex flex-col justify-between transition-all duration-300 card-shadow border-l-4 border-[#FF4F12] relative">
                     <div class="flex flex-col items-center w-full order-2">
-                        <button onclick="vote(1)" class="mb-4 w-full py-3 bg-orange-50 rounded-xl font-bold text-xs text-orange-600 hover:bg-orange-100 uppercase tracking-wider transition-colors">
+                        <button onclick="vote(1)" class="mb-4 w-full py-3 bg-[#FFF7ED] rounded-xl font-bold text-[10px] text-[#FF4F12] hover:bg-[#FF4F12] hover:text-white uppercase tracking-wider transition-all">
                             Выбрать этот ответ
                         </button>
                         <audio id="audio-2" controls></audio>
                     </div>
                     <div class="mb-2 order-1 border-b border-gray-100 pb-2">
-                        <div class="text-[10px] text-orange-500 uppercase font-bold tracking-wider">Тема раунда</div>
-                        <div class="text-sm font-semibold text-gray-800 leading-tight mt-1 line-clamp-2" id="topic-2">...</div>
+                        <div class="text-[9px] text-[#FF4F12] uppercase font-bold tracking-widest opacity-60">Возражение</div>
+                        <div class="text-sm font-bold text-gray-800 leading-tight mt-1" id="topic-2">...</div>
                     </div>
                 </div>
             </div>
@@ -129,43 +199,42 @@
         <!-- VIEW: RECORDING -->
         <div id="view-record" class="absolute inset-0 flex flex-col p-6 pb-24 hidden fade-in justify-center items-center text-center">
             
-            <div class="bg-white w-full p-8 rounded-3xl card-shadow relative overflow-hidden mb-10">
-                <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-600 to-purple-600"></div>
-                <div class="inline-block px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-[10px] font-bold uppercase tracking-wider mb-4">Ваша очередь</div>
-                <div class="text-xs text-gray-400 mb-2 uppercase">Клиент говорит:</div>
-                <p class="text-xl font-serif italic text-gray-800 leading-relaxed" id="scenario-text">"..."</p>
+            <div class="bg-white w-full p-8 rounded-3xl card-shadow relative overflow-hidden mb-10 border border-white/50">
+                <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-[#100C3B] to-[#FF4F12]"></div>
+                <div class="inline-block px-3 py-1 bg-gray-100 text-gray-500 rounded-full text-[9px] font-bold uppercase tracking-widest mb-4">Ваша очередь</div>
+                <div class="text-[10px] text-gray-400 mb-2 uppercase tracking-wide">Клиент говорит:</div>
+                <p class="text-xl font-serif italic text-[#100C3B] leading-relaxed" id="scenario-text">"..."</p>
             </div>
 
             <div class="relative">
                 <!-- Record Button -->
-                <button id="record-btn" class="w-24 h-24 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/30 text-white active:scale-95 transition-transform z-10 relative">
+                <button id="record-btn" class="w-24 h-24 rounded-full bg-gradient-to-br from-[#FF4F12] to-[#FF8F6B] flex items-center justify-center shadow-xl shadow-orange-500/30 text-white active:scale-95 transition-transform z-10 relative border-4 border-[#F2F3F7]">
                     <i class="fas fa-microphone text-3xl" id="mic-icon"></i>
                 </button>
-                <div class="mt-6 text-3xl font-mono text-gray-700 font-bold hidden" id="recording-timer">00:00</div>
-                <p class="mt-4 text-xs text-gray-400 max-w-[200px]" id="rec-hint">Нажмите, чтобы начать запись ответа</p>
+                <div class="mt-6 text-3xl font-mono text-[#100C3B] font-bold hidden" id="recording-timer">00:00</div>
+                <p class="mt-4 text-xs text-gray-400 max-w-[200px]" id="rec-hint">Нажмите микрофон, чтобы начать запись ответа</p>
             </div>
         </div>
 
         <!-- VIEW: LEADERBOARD -->
         <div id="view-leaderboard" class="absolute inset-0 flex flex-col p-4 pb-24 hidden fade-in">
-            <h2 class="text-lg font-bold text-[#1F1A60] mb-4 pl-2 flex items-center gap-2">
-                <i class="fas fa-medal text-orange-500"></i> Лидеры продаж
+            <h2 class="text-lg font-bold text-[#100C3B] mb-4 pl-2 flex items-center gap-2">
+                <i class="fas fa-trophy text-[#FF4F12]"></i> Лидеры недели
             </h2>
             <div class="flex-1 overflow-y-auto pr-1 space-y-3 pb-4" id="leaders-list">
                 <!-- Dynamic Content -->
-                <div class="text-center text-gray-400 mt-10">Загрузка рейтинга...</div>
             </div>
         </div>
 
         <!-- VIEW: SUCCESS -->
-        <div id="view-success" class="absolute inset-0 flex flex-col justify-center items-center p-6 hidden fade-in z-30 bg-white/95 backdrop-blur-sm">
-            <div class="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mb-6">
+        <div id="view-success" class="absolute inset-0 flex flex-col justify-center items-center p-6 hidden fade-in z-30 bg-white/95 backdrop-blur-md">
+            <div class="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mb-6 shadow-lg shadow-green-500/20">
                 <i class="fas fa-check text-4xl text-green-500"></i>
             </div>
-            <h2 class="text-2xl font-bold text-gray-800 mb-2">Отлично!</h2>
-            <p class="text-gray-500 text-center px-4 leading-relaxed mb-8 text-sm">Ваш ответ сохранен. Теперь его оценят коллеги.</p>
-            <button onclick="finishGame()" class="px-8 py-4 bg-[#1F1A60] rounded-xl text-white font-bold shadow-lg w-full max-w-xs">
-                Смотреть рейтинг
+            <h2 class="text-2xl font-bold text-[#100C3B] mb-2">Отлично!</h2>
+            <p class="text-gray-500 text-center px-4 leading-relaxed mb-8 text-sm">Ваш ответ сохранен. Теперь его оценят коллеги в следующем раунде голосования.</p>
+            <button onclick="finishGame()" class="px-8 py-4 bg-[#100C3B] rounded-xl text-white font-bold shadow-lg w-full max-w-xs uppercase text-xs tracking-widest hover:bg-[#3A2F9D] transition-colors">
+                К результатам
             </button>
         </div>
     </div>
@@ -174,30 +243,30 @@
     <div class="absolute bottom-6 left-6 right-6 h-16 bg-white rounded-2xl card-shadow flex items-center justify-around z-40" id="bottom-menu">
         <button id="nav-battle" class="nav-btn active flex flex-col items-center gap-1 w-16">
             <i class="fas fa-gavel text-lg"></i>
-            <span class="text-[10px] font-bold uppercase">Суд</span>
+            <span class="text-[9px] font-bold uppercase tracking-wide">Голосование</span>
         </button>
         
         <div class="relative -top-6">
-            <button id="nav-record" class="w-14 h-14 rounded-full bg-gray-200 flex items-center justify-center shadow-md border-4 border-[#F3F4F6] text-gray-400 cursor-not-allowed transition-all">
+            <button id="nav-record" class="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center shadow-inner border-4 border-[#F2F3F7] text-gray-300 cursor-not-allowed transition-all">
                 <i class="fas fa-microphone text-xl"></i>
             </button>
         </div>
         
         <button id="nav-leaders" class="nav-btn text-gray-300 cursor-not-allowed flex flex-col items-center gap-1 w-16">
             <i class="fas fa-chart-bar text-lg"></i>
-            <span class="text-[10px] font-bold uppercase">Топ</span>
+            <span class="text-[9px] font-bold uppercase tracking-wide">Рейтинг</span>
         </button>
     </div>
 
-    <!-- Loader Overlay -->
-    <div id="loader" class="absolute inset-0 bg-white z-50 flex flex-col items-center justify-center">
-        <div class="w-12 h-12 border-4 border-blue-100 border-t-orange-500 rounded-full animate-spin mb-4"></div>
-        <div class="text-sm font-bold text-[#1F1A60]">Загрузка данных...</div>
+    <!-- Loader -->
+    <div id="loader" class="absolute inset-0 bg-white z-40 flex flex-col items-center justify-center hidden">
+        <div class="w-10 h-10 border-4 border-gray-100 border-t-[#FF4F12] rounded-full animate-spin mb-4"></div>
+        <div class="text-xs font-bold text-gray-400 uppercase tracking-widest">Загрузка...</div>
     </div>
 
     <script>
         // --- CONFIG ---
-        // Вставьте сюда URL вашей облачной функции
+        // ВАЖНО: ВСТАВЬТЕ СЮДА ВАШУ ССЫЛКУ!
         const API_URL = 'https://functions.yandexcloud.net/d4e6md232ujcf62olr4o'; 
         
         const tg = window.Telegram.WebApp;
@@ -215,7 +284,7 @@
             "Я подумаю, оставьте буклет в двери."
         ];
 
-        const VOTES_REQUIRED = 3; // Нужно оценить 3 пары
+        const VOTES_REQUIRED = 3; 
         let votesDone = 0;
         let gameState = 'voting'; 
         let currentRecords = [];
@@ -224,8 +293,38 @@
         let isRecording = false;
         let timerInterval;
         let currentScenarioText = "";
+        let onboardingStep = 1;
 
-        // Stop playing other audios when one starts
+        // --- ONBOARDING LOGIC ---
+        function checkOnboarding() {
+            // Проверяем, видел ли пользователь инструкцию
+            if (!localStorage.getItem('rt_trainer_onboarding')) {
+                document.getElementById('onboarding').classList.remove('hidden');
+            } else {
+                loadBattle(); // Если видел, сразу грузим битву
+            }
+        }
+
+        function nextStep() {
+            document.getElementById(`step-${onboardingStep}`).classList.add('hidden');
+            document.getElementById(`dot-${onboardingStep}`).classList.remove('active');
+            
+            onboardingStep++;
+            
+            if (onboardingStep > 3) {
+                // Finish Onboarding
+                document.getElementById('onboarding').classList.add('fade-out');
+                setTimeout(() => document.getElementById('onboarding').classList.add('hidden'), 300);
+                localStorage.setItem('rt_trainer_onboarding', 'true');
+                loadBattle();
+            } else {
+                // Next Slide
+                document.getElementById(`step-${onboardingStep}`).classList.remove('hidden');
+                document.getElementById(`dot-${onboardingStep}`).classList.add('active');
+                if(onboardingStep === 3) document.getElementById('onboarding-btn').innerText = "НАЧАТЬ";
+            }
+        }
+
         document.addEventListener('play', function(e){
             var audios = document.getElementsByTagName('audio');
             for(var i = 0, len = audios.length; i < len;i++){
@@ -235,7 +334,7 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             updateUI(); 
-            loadBattle();
+            checkOnboarding();
         });
 
         // --- UI LOGIC ---
@@ -246,13 +345,14 @@
             const navRecord = document.getElementById('nav-record');
             const navLeaders = document.getElementById('nav-leaders');
 
-            // Reset handlers
             navRecord.onclick = null;
             navBattle.onclick = null;
             navLeaders.onclick = null;
 
             if (gameState === 'voting') {
-                stepLabel.innerText = "Этап 1: Судейство";
+                stepLabel.innerText = "Голосование";
+                stepLabel.className = "text-[10px] font-bold text-[#FF4F12] uppercase";
+                
                 let percent = (votesDone / VOTES_REQUIRED) * 50;
                 progressBar.style.width = `${percent}%`;
                 
@@ -260,21 +360,25 @@
                 document.getElementById('vote-total').innerText = VOTES_REQUIRED;
 
                 setNavState(navBattle, true);
-                setNavState(navRecord, false, true); // center disabled
+                setNavState(navRecord, false, true);
                 setNavState(navLeaders, false);
 
             } else if (gameState === 'recording') {
-                stepLabel.innerText = "Этап 2: Ответ";
+                stepLabel.innerText = "Ваш ответ";
+                stepLabel.className = "text-[10px] font-bold text-[#00A3E0] uppercase";
+                
                 progressBar.style.width = "75%";
                 
                 setNavState(navBattle, false);
-                setNavState(navRecord, true, true); // center enabled
+                setNavState(navRecord, true, true);
                 setNavState(navLeaders, false);
                 
                 startScenarioMode();
 
             } else if (gameState === 'finished') {
                 stepLabel.innerText = "Результаты";
+                stepLabel.className = "text-[10px] font-bold text-green-500 uppercase";
+                
                 progressBar.style.width = "100%";
                 
                 setNavState(navBattle, false);
@@ -286,18 +390,18 @@
         }
 
         function setNavState(el, isActive, isCenter = false) {
-            el.classList.remove('active', 'text-gray-300', 'cursor-not-allowed', 'bg-gray-200', 'text-gray-400');
+            el.classList.remove('active', 'text-gray-300', 'cursor-not-allowed', 'bg-gray-100', 'text-gray-400');
             
             if (isCenter) {
                 if (isActive) {
-                    el.className = "w-14 h-14 rounded-full bg-[#1F1A60] flex items-center justify-center shadow-lg shadow-blue-900/30 border-4 border-[#F3F4F6] text-white hover:scale-105 transition-transform cursor-pointer";
+                    el.className = "w-14 h-14 rounded-full bg-[#100C3B] flex items-center justify-center shadow-lg shadow-indigo-900/30 border-4 border-[#F2F3F7] text-white hover:scale-105 transition-transform cursor-pointer";
                     el.onclick = startScenarioMode;
                 } else {
-                    el.className = "w-14 h-14 rounded-full bg-gray-200 flex items-center justify-center shadow-inner border-4 border-[#F3F4F6] text-gray-400 cursor-not-allowed";
+                    el.className = "w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center shadow-inner border-4 border-[#F2F3F7] text-gray-300 cursor-not-allowed";
                 }
             } else {
                 if (isActive) {
-                    el.classList.add('active', 'cursor-pointer', 'text-[#FF4F12]');
+                    el.classList.add('active', 'cursor-pointer');
                     if(el.id === 'nav-leaders') el.onclick = loadLeaderboard;
                 } else {
                     el.classList.add('text-gray-300', 'cursor-not-allowed');
@@ -322,7 +426,6 @@
                 document.getElementById('loader').classList.add('hidden');
 
                 if (data.skip_voting) {
-                    // Not enough records to vote
                     votesDone = VOTES_REQUIRED;
                     gameState = 'recording';
                     updateUI();
@@ -347,7 +450,6 @@
             const winnerCard = document.getElementById(winnerIndex === 0 ? 'card-1' : 'card-2');
             const loserCard = document.getElementById(winnerIndex === 0 ? 'card-2' : 'card-1');
             
-            // Animation
             loserCard.classList.add(winnerIndex === 0 ? 'fly-out-right' : 'fly-out-left');
             
             const winner = currentRecords[winnerIndex];
@@ -363,7 +465,6 @@
                     gameState = 'recording';
                     updateUI();
                 } else {
-                    // Reset animations
                     document.getElementById('card-1').classList.remove('fly-out-left', 'fly-out-right');
                     document.getElementById('card-2').classList.remove('fly-out-left', 'fly-out-right');
                     updateUI();
@@ -388,11 +489,10 @@
             if (!isRecording) {
                 try {
                     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    // Handle Safari/iOS mimetype quirk
                     let options = { mimeType: 'audio/webm' };
                     if (!MediaRecorder.isTypeSupported('audio/webm')) {
-                         options = { mimeType: 'audio/mp4' }; // Fallback for Safari
-                         if(!MediaRecorder.isTypeSupported('audio/mp4')) options = undefined; // Default
+                         options = { mimeType: 'audio/mp4' }; 
+                         if(!MediaRecorder.isTypeSupported('audio/mp4')) options = undefined;
                     }
                     
                     try { mediaRecorder = new MediaRecorder(stream, options); }
@@ -405,7 +505,6 @@
                     mediaRecorder.start();
                     isRecording = true;
                     
-                    // UI changes
                     document.getElementById('mic-icon').classList.replace('fa-microphone', 'fa-stop');
                     recordBtn.classList.add('recording-pulse');
                     document.getElementById('recording-timer').classList.remove('hidden');
@@ -423,7 +522,6 @@
                     alert("Ошибка доступа к микрофону. Проверьте настройки прав."); 
                 }
             } else {
-                // STOP RECORDING
                 if(mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
                 isRecording = false;
                 clearInterval(timerInterval);
@@ -449,7 +547,7 @@
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             user_id: user?.id || 999,
-                            first_name: user?.first_name || 'Агент',
+                            first_name: user?.first_name || 'Сотрудник',
                             username: user?.username || '',
                             audio_data: base64Audio,
                             mime_type: blob.type,
@@ -462,11 +560,11 @@
                     if (result.status === 'saved') {
                         switchView('view-success');
                     } else {
-                        alert("Ошибка сохранения: " + (result.error || 'Unknown'));
+                        alert("Ошибка: " + (result.error || 'Unknown'));
                     }
                 } catch (e) { 
                     tg.MainButton.hideProgress(); 
-                    alert("Сетевая ошибка: " + e); 
+                    alert("Ошибка сети"); 
                 }
             }
         }
@@ -497,28 +595,27 @@
                     let medal = '';
                     if(index === 0) medal = '<i class="fas fa-trophy text-yellow-500"></i>';
                     else if(index === 1) medal = '<i class="fas fa-medal text-gray-400"></i>';
-                    else if(index === 2) medal = '<i class="fas fa-medal text-orange-600"></i>';
+                    else if(index === 2) medal = '<i class="fas fa-medal text-[#FF4F12]"></i>';
                     else medal = `<span class="text-gray-400 font-bold">#${index+1}</span>`;
 
-                    // Dicebear avatars for corporate look
-                    const avatarUrl = `https://api.dicebear.com/7.x/initials/svg?seed=${user.name}&backgroundColor=1F1A60,00A3E0,FF4F12`;
+                    const avatarUrl = `https://api.dicebear.com/7.x/initials/svg?seed=${user.name}&backgroundColor=100C3B,00A3E0,FF4F12`;
 
                     const row = `
                         <div class="bg-white p-3 rounded-xl card-shadow flex items-center gap-3 border border-gray-100">
                             <div class="w-8 text-center text-lg">${medal}</div>
                             
-                            <div class="w-10 h-10 rounded-full bg-gray-100 overflow-hidden shrink-0">
+                            <div class="w-10 h-10 rounded-full bg-gray-100 overflow-hidden shrink-0 border border-gray-200">
                                 <img src="${avatarUrl}" class="w-full h-full object-cover">
                             </div>
 
                             <div class="flex-1 min-w-0">
-                                <div class="text-sm font-bold text-gray-800 truncate">${user.name}</div>
+                                <div class="text-sm font-bold text-[#100C3B] truncate">${user.name}</div>
                                 <div class="text-[10px] text-gray-500 truncate mb-1">${user.topic}</div>
                                 <audio src="${user.url}" controls class="h-6 w-full" style="margin:0;"></audio>
                             </div>
                             
-                            <div class="flex flex-col items-center px-2 border-l border-gray-100">
-                                <i class="fas fa-heart text-orange-500 text-sm mb-1"></i>
+                            <div class="flex flex-col items-center px-2 border-l border-gray-100 min-w-[40px]">
+                                <i class="fas fa-heart text-[#FF4F12] text-xs mb-1"></i>
                                 <span class="text-sm font-bold text-gray-700">${user.votes}</span>
                             </div>
                         </div>
