@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+    <title>RT Sales Trainer</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* RT Colors: Dark Blue #1F1A60, Orange #FF4F12, Light Blue #00A3E0 */
+        body { 
+            background-color: #F3F4F6; 
+            color: #1F2937; 
+            font-family: 'Roboto', sans-serif; 
+            overflow: hidden; 
+        }
+
+        /* Branding Gradient Header */
+        .rt-header {
+            background: linear-gradient(135deg, #1F1A60 0%, #3B3294 100%);
+        }
+
+        .card-shadow {
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        /* Animations */
+        .fly-out-left { animation: flyOutLeft 0.5s ease-in forwards; }
+        .fly-out-right { animation: flyOutRight 0.5s ease-in forwards; }
+        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        
+        @keyframes flyOutLeft { to { transform: translateX(-120%) rotate(-5deg); opacity: 0; } }
+        @keyframes flyOutRight { to { transform: translateX(120%) rotate(5deg); opacity: 0; } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Recording Pulse (Orange) */
+        .recording-pulse { animation: pulse-orange 1.5s infinite; background-color: #FFF7ED !important; border-color: #FF4F12 !important; }
+        @keyframes pulse-orange {
+            0% { box-shadow: 0 0 0 0 rgba(255, 79, 18, 0.4); }
+            70% { box-shadow: 0 0 0 15px rgba(255, 79, 18, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 79, 18, 0); }
+        }
+
+        /* Audio Player Styling */
+        audio { height: 36px; width: 100%; border-radius: 20px; margin-top: 8px; }
+        audio::-webkit-media-controls-panel { background-color: #F3F4F6; }
+
+        .hidden { display: none !important; }
+        
+        .nav-btn.active { color: #FF4F12; }
+        .nav-btn { transition: all 0.2s; }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 4px; }
+    </style>
+</head>
+<body class="h-screen w-full flex flex-col relative">
+
+    <!-- Header -->
+    <div class="rt-header pt-4 pb-6 px-6 rounded-b-[2rem] shadow-lg z-20 relative text-white">
+        <div class="flex justify-between items-center mb-4">
+            <div>
+                <h1 class="text-xl font-bold tracking-tight">Тренажер</h1>
+                <p class="text-xs text-blue-200 opacity-80">Отработка возражений</p>
+            </div>
+            <div class="bg-white/10 px-3 py-1 rounded-full backdrop-blur-sm">
+                <span class="text-xs font-semibold text-orange-400" id="step-label">Судейство</span>
+            </div>
+        </div>
+        
+        <!-- Progress Bar -->
+        <div class="w-full h-1.5 bg-black/20 rounded-full overflow-hidden">
+            <div id="progress-line" class="h-full bg-gradient-to-r from-orange-400 to-orange-600 w-1/4 transition-all duration-500 rounded-full"></div>
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="flex-1 relative overflow-hidden bg-[#F3F4F6]">
+        
+        <!-- VIEW: VOTING (BATTLE) -->
+        <div id="view-vote" class="absolute inset-0 flex flex-col p-4 pb-24 hidden fade-in overflow-y-auto">
+            <div class="text-center text-xs text-gray-400 font-medium mb-3 mt-2 uppercase tracking-wide">
+                Голос <span id="vote-counter" class="text-gray-800 font-bold">1</span> из <span id="vote-total">3</span>
+            </div>
+
+            <div class="flex-1 flex flex-col gap-4 relative justify-center">
+                
+                <!-- VS Badge -->
+                <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-30 pointer-events-none">
+                    <div class="w-12 h-12 rounded-full bg-white flex items-center justify-center border-4 border-[#F3F4F6] shadow-xl text-lg font-black text-[#1F1A60] italic">
+                        VS
+                    </div>
+                </div>
+
+                <!-- Card 1 -->
+                <div id="card-1" class="flex-1 bg-white rounded-2xl p-5 flex flex-col justify-between transition-all duration-300 card-shadow border-l-4 border-blue-500 relative">
+                    <div class="mb-2">
+                        <div class="text-[10px] text-blue-500 uppercase font-bold tracking-wider">Тема раунда</div>
+                        <div class="text-sm font-semibold text-gray-800 leading-tight mt-1 line-clamp-2" id="topic-1">...</div>
+                    </div>
+                    <div class="flex flex-col items-center w-full">
+                        <audio id="audio-1" controls></audio>
+                        <button onclick="vote(0)" class="mt-4 w-full py-3 bg-blue-50 rounded-xl font-bold text-xs text-blue-700 hover:bg-blue-100 uppercase tracking-wider transition-colors">
+                            Выбрать этот ответ
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Card 2 -->
+                <div id="card-2" class="flex-1 bg-white rounded-2xl p-5 flex flex-col justify-between transition-all duration-300 card-shadow border-l-4 border-orange-500 relative">
+                    <div class="flex flex-col items-center w-full order-2">
+                        <button onclick="vote(1)" class="mb-4 w-full py-3 bg-orange-50 rounded-xl font-bold text-xs text-orange-600 hover:bg-orange-100 uppercase tracking-wider transition-colors">
+                            Выбрать этот ответ
+                        </button>
+                        <audio id="audio-2" controls></audio>
+                    </div>
+                    <div class="mb-2 order-1 border-b border-gray-100 pb-2">
+                        <div class="text-[10px] text-orange-500 uppercase font-bold tracking-wider">Тема раунда</div>
+                        <div class="text-sm font-semibold text-gray-800 leading-tight mt-1 line-clamp-2" id="topic-2">...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW: RECORDING -->
+        <div id="view-record" class="absolute inset-0 flex flex-col p-6 pb-24 hidden fade-in justify-center items-center text-center">
+            
+            <div class="bg-white w-full p-8 rounded-3xl card-shadow relative overflow-hidden mb-10">
+                <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-600 to-purple-600"></div>
+                <div class="inline-block px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-[10px] font-bold uppercase tracking-wider mb-4">Ваша очередь</div>
+                <div class="text-xs text-gray-400 mb-2 uppercase">Клиент говорит:</div>
+                <p class="text-xl font-serif italic text-gray-800 leading-relaxed" id="scenario-text">"..."</p>
+            </div>
+
+            <div class="relative">
+                <!-- Record Button -->
+                <button id="record-btn" class="w-24 h-24 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/30 text-white active:scale-95 transition-transform z-10 relative">
+                    <i class="fas fa-microphone text-3xl" id="mic-icon"></i>
+                </button>
+                <div class="mt-6 text-3xl font-mono text-gray-700 font-bold hidden" id="recording-timer">00:00</div>
+                <p class="mt-4 text-xs text-gray-400 max-w-[200px]" id="rec-hint">Нажмите, чтобы начать запись ответа</p>
+            </div>
+        </div>
+
+        <!-- VIEW: LEADERBOARD -->
+        <div id="view-leaderboard" class="absolute inset-0 flex flex-col p-4 pb-24 hidden fade-in">
+            <h2 class="text-lg font-bold text-[#1F1A60] mb-4 pl-2 flex items-center gap-2">
+                <i class="fas fa-medal text-orange-500"></i> Лидеры продаж
+            </h2>
+            <div class="flex-1 overflow-y-auto pr-1 space-y-3 pb-4" id="leaders-list">
+                <!-- Dynamic Content -->
+                <div class="text-center text-gray-400 mt-10">Загрузка рейтинга...</div>
+            </div>
+        </div>
+
+        <!-- VIEW: SUCCESS -->
+        <div id="view-success" class="absolute inset-0 flex flex-col justify-center items-center p-6 hidden fade-in z-30 bg-white/95 backdrop-blur-sm">
+            <div class="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mb-6">
+                <i class="fas fa-check text-4xl text-green-500"></i>
+            </div>
+            <h2 class="text-2xl font-bold text-gray-800 mb-2">Отлично!</h2>
+            <p class="text-gray-500 text-center px-4 leading-relaxed mb-8 text-sm">Ваш ответ сохранен. Теперь его оценят коллеги.</p>
+            <button onclick="finishGame()" class="px-8 py-4 bg-[#1F1A60] rounded-xl text-white font-bold shadow-lg w-full max-w-xs">
+                Смотреть рейтинг
+            </button>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <div class="absolute bottom-6 left-6 right-6 h-16 bg-white rounded-2xl card-shadow flex items-center justify-around z-40" id="bottom-menu">
+        <button id="nav-battle" class="nav-btn active flex flex-col items-center gap-1 w-16">
+            <i class="fas fa-gavel text-lg"></i>
+            <span class="text-[10px] font-bold uppercase">Суд</span>
+        </button>
+        
+        <div class="relative -top-6">
+            <button id="nav-record" class="w-14 h-14 rounded-full bg-gray-200 flex items-center justify-center shadow-md border-4 border-[#F3F4F6] text-gray-400 cursor-not-allowed transition-all">
+                <i class="fas fa-microphone text-xl"></i>
+            </button>
+        </div>
+        
+        <button id="nav-leaders" class="nav-btn text-gray-300 cursor-not-allowed flex flex-col items-center gap-1 w-16">
+            <i class="fas fa-chart-bar text-lg"></i>
+            <span class="text-[10px] font-bold uppercase">Топ</span>
+        </button>
+    </div>
+
+    <!-- Loader Overlay -->
+    <div id="loader" class="absolute inset-0 bg-white z-50 flex flex-col items-center justify-center">
+        <div class="w-12 h-12 border-4 border-blue-100 border-t-orange-500 rounded-full animate-spin mb-4"></div>
+        <div class="text-sm font-bold text-[#1F1A60]">Загрузка данных...</div>
+    </div>
+
+    <script>
+        // --- CONFIG ---
+        // Вставьте сюда URL вашей облачной функции
+        const API_URL = 'https://functions.yandexcloud.net/d4e6md232ujcf62olr4o'; 
+        
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        tg.enableClosingConfirmation();
+
+        // СЦЕНАРИИ РОСТЕЛЕКОМ
+        const SCENARIOS = [
+            "У нас уже подключен другой провайдер, нас всё устраивает.",
+            "Мне не нужно телевидение, я смотрю только YouTube.",
+            "В Ростелекоме дорого, я видел тарифы дешевле.",
+            "Не хочу тянуть лишние провода по свежему ремонту.",
+            "Слышал плохие отзывы о вашей техподдержке.",
+            "Мне нужна только сим-карта, интернет дома не нужен.",
+            "Я подумаю, оставьте буклет в двери."
+        ];
+
+        const VOTES_REQUIRED = 3; // Нужно оценить 3 пары
+        let votesDone = 0;
+        let gameState = 'voting'; 
+        let currentRecords = [];
+        let mediaRecorder;
+        let audioChunks = [];
+        let isRecording = false;
+        let timerInterval;
+        let currentScenarioText = "";
+
+        // Stop playing other audios when one starts
+        document.addEventListener('play', function(e){
+            var audios = document.getElementsByTagName('audio');
+            for(var i = 0, len = audios.length; i < len;i++){
+                if(audios[i] != e.target) audios[i].pause();
+            }
+        }, true);
+
+        document.addEventListener('DOMContentLoaded', () => {
+            updateUI(); 
+            loadBattle();
+        });
+
+        // --- UI LOGIC ---
+        function updateUI() {
+            const progressBar = document.getElementById('progress-line');
+            const stepLabel = document.getElementById('step-label');
+            const navBattle = document.getElementById('nav-battle');
+            const navRecord = document.getElementById('nav-record');
+            const navLeaders = document.getElementById('nav-leaders');
+
+            // Reset handlers
+            navRecord.onclick = null;
+            navBattle.onclick = null;
+            navLeaders.onclick = null;
+
+            if (gameState === 'voting') {
+                stepLabel.innerText = "Этап 1: Судейство";
+                let percent = (votesDone / VOTES_REQUIRED) * 50;
+                progressBar.style.width = `${percent}%`;
+                
+                document.getElementById('vote-counter').innerText = votesDone + 1;
+                document.getElementById('vote-total').innerText = VOTES_REQUIRED;
+
+                setNavState(navBattle, true);
+                setNavState(navRecord, false, true); // center disabled
+                setNavState(navLeaders, false);
+
+            } else if (gameState === 'recording') {
+                stepLabel.innerText = "Этап 2: Ответ";
+                progressBar.style.width = "75%";
+                
+                setNavState(navBattle, false);
+                setNavState(navRecord, true, true); // center enabled
+                setNavState(navLeaders, false);
+                
+                startScenarioMode();
+
+            } else if (gameState === 'finished') {
+                stepLabel.innerText = "Результаты";
+                progressBar.style.width = "100%";
+                
+                setNavState(navBattle, false);
+                setNavState(navRecord, false, true);
+                setNavState(navLeaders, true);
+                
+                loadLeaderboard();
+            }
+        }
+
+        function setNavState(el, isActive, isCenter = false) {
+            el.classList.remove('active', 'text-gray-300', 'cursor-not-allowed', 'bg-gray-200', 'text-gray-400');
+            
+            if (isCenter) {
+                if (isActive) {
+                    el.className = "w-14 h-14 rounded-full bg-[#1F1A60] flex items-center justify-center shadow-lg shadow-blue-900/30 border-4 border-[#F3F4F6] text-white hover:scale-105 transition-transform cursor-pointer";
+                    el.onclick = startScenarioMode;
+                } else {
+                    el.className = "w-14 h-14 rounded-full bg-gray-200 flex items-center justify-center shadow-inner border-4 border-[#F3F4F6] text-gray-400 cursor-not-allowed";
+                }
+            } else {
+                if (isActive) {
+                    el.classList.add('active', 'cursor-pointer', 'text-[#FF4F12]');
+                    if(el.id === 'nav-leaders') el.onclick = loadLeaderboard;
+                } else {
+                    el.classList.add('text-gray-300', 'cursor-not-allowed');
+                }
+            }
+        }
+
+        function switchView(viewId) {
+            ['view-vote', 'view-record', 'view-leaderboard', 'view-success'].forEach(v => document.getElementById(v).classList.add('hidden'));
+            document.getElementById(viewId).classList.remove('hidden');
+        }
+
+        // --- BATTLE ---
+        async function loadBattle() {
+            if(gameState !== 'voting') return;
+            switchView('view-vote');
+            document.getElementById('loader').classList.remove('hidden');
+            
+            try {
+                const response = await fetch(`${API_URL}?action=get-battle`);
+                const data = await response.json();
+                document.getElementById('loader').classList.add('hidden');
+
+                if (data.skip_voting) {
+                    // Not enough records to vote
+                    votesDone = VOTES_REQUIRED;
+                    gameState = 'recording';
+                    updateUI();
+                } else {
+                    currentRecords = data.records;
+                    
+                    if (currentRecords[0].topic) document.getElementById('topic-1').innerText = currentRecords[0].topic;
+                    if (currentRecords[1].topic) document.getElementById('topic-2').innerText = currentRecords[1].topic;
+                    
+                    document.getElementById('audio-1').src = currentRecords[0].url;
+                    document.getElementById('audio-2').src = currentRecords[1].url;
+                }
+            } catch (e) {
+                console.error(e);
+                document.getElementById('loader').classList.add('hidden');
+            }
+        }
+
+        function vote(winnerIndex) {
+            document.querySelectorAll('audio').forEach(a => { a.pause(); a.currentTime = 0; });
+            
+            const winnerCard = document.getElementById(winnerIndex === 0 ? 'card-1' : 'card-2');
+            const loserCard = document.getElementById(winnerIndex === 0 ? 'card-2' : 'card-1');
+            
+            // Animation
+            loserCard.classList.add(winnerIndex === 0 ? 'fly-out-right' : 'fly-out-left');
+            
+            const winner = currentRecords[winnerIndex];
+            fetch(`${API_URL}?action=vote`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ winner_id: winner.id })
+            });
+
+            setTimeout(() => {
+                votesDone++;
+                if (votesDone >= VOTES_REQUIRED) {
+                    gameState = 'recording';
+                    updateUI();
+                } else {
+                    // Reset animations
+                    document.getElementById('card-1').classList.remove('fly-out-left', 'fly-out-right');
+                    document.getElementById('card-2').classList.remove('fly-out-left', 'fly-out-right');
+                    updateUI();
+                    loadBattle();
+                }
+            }, 500);
+        }
+
+        // --- RECORD ---
+        function startScenarioMode() {
+            if (gameState !== 'recording') return;
+            switchView('view-record');
+            
+            if (!currentScenarioText) {
+                currentScenarioText = SCENARIOS[Math.floor(Math.random() * SCENARIOS.length)];
+                document.getElementById('scenario-text').innerText = `"${currentScenarioText}"`;
+            }
+        }
+
+        const recordBtn = document.getElementById('record-btn');
+        recordBtn.addEventListener('click', async () => {
+            if (!isRecording) {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    // Handle Safari/iOS mimetype quirk
+                    let options = { mimeType: 'audio/webm' };
+                    if (!MediaRecorder.isTypeSupported('audio/webm')) {
+                         options = { mimeType: 'audio/mp4' }; // Fallback for Safari
+                         if(!MediaRecorder.isTypeSupported('audio/mp4')) options = undefined; // Default
+                    }
+                    
+                    try { mediaRecorder = new MediaRecorder(stream, options); }
+                    catch (e) { mediaRecorder = new MediaRecorder(stream); }
+
+                    audioChunks = [];
+                    mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
+                    mediaRecorder.onstop = () => uploadAudio(new Blob(audioChunks, { type: mediaRecorder.mimeType || 'audio/webm' }));
+                    
+                    mediaRecorder.start();
+                    isRecording = true;
+                    
+                    // UI changes
+                    document.getElementById('mic-icon').classList.replace('fa-microphone', 'fa-stop');
+                    recordBtn.classList.add('recording-pulse');
+                    document.getElementById('recording-timer').classList.remove('hidden');
+                    document.getElementById('rec-hint').innerText = "Нажмите стоп для отправки";
+                    
+                    let seconds = 0;
+                    const timerVal = document.getElementById('recording-timer');
+                    timerVal.innerText = "00:00";
+                    timerInterval = setInterval(() => {
+                        seconds++;
+                        timerVal.innerText = `00:${seconds.toString().padStart(2, '0')}`;
+                    }, 1000);
+
+                } catch(e) { 
+                    alert("Ошибка доступа к микрофону. Проверьте настройки прав."); 
+                }
+            } else {
+                // STOP RECORDING
+                if(mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+                isRecording = false;
+                clearInterval(timerInterval);
+                
+                document.getElementById('mic-icon').classList.replace('fa-stop', 'fa-microphone');
+                recordBtn.classList.remove('recording-pulse');
+                document.getElementById('recording-timer').classList.add('hidden');
+                document.getElementById('rec-hint').innerText = "Отправка...";
+                tg.MainButton.showProgress();
+            }
+        });
+
+        async function uploadAudio(blob) {
+            const reader = new FileReader();
+            reader.readAsDataURL(blob); 
+            reader.onloadend = async () => {
+                const base64Audio = reader.result;
+                const user = tg.initDataUnsafe?.user;
+                
+                try {
+                    const response = await fetch(`${API_URL}?action=upload`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            user_id: user?.id || 999,
+                            first_name: user?.first_name || 'Агент',
+                            username: user?.username || '',
+                            audio_data: base64Audio,
+                            mime_type: blob.type,
+                            topic: currentScenarioText
+                        })
+                    });
+                    const result = await response.json();
+                    tg.MainButton.hideProgress();
+                    
+                    if (result.status === 'saved') {
+                        switchView('view-success');
+                    } else {
+                        alert("Ошибка сохранения: " + (result.error || 'Unknown'));
+                    }
+                } catch (e) { 
+                    tg.MainButton.hideProgress(); 
+                    alert("Сетевая ошибка: " + e); 
+                }
+            }
+        }
+
+        function finishGame() {
+            gameState = 'finished';
+            updateUI();
+        }
+
+        // --- LEADERBOARD ---
+        async function loadLeaderboard() {
+            if(gameState !== 'finished') return;
+            switchView('view-leaderboard');
+            const list = document.getElementById('leaders-list');
+            list.innerHTML = '<div class="text-center text-gray-400 mt-10"><i class="fas fa-circle-notch fa-spin"></i> Загрузка...</div>';
+            
+            try {
+                const response = await fetch(`${API_URL}?action=get-leaderboard`);
+                const data = await response.json();
+                
+                list.innerHTML = '';
+                if (!data.leaders || data.leaders.length === 0) {
+                    list.innerHTML = '<div class="text-center text-gray-400 mt-10">Пока нет записей</div>';
+                    return;
+                }
+
+                data.leaders.forEach((user, index) => {
+                    let medal = '';
+                    if(index === 0) medal = '<i class="fas fa-trophy text-yellow-500"></i>';
+                    else if(index === 1) medal = '<i class="fas fa-medal text-gray-400"></i>';
+                    else if(index === 2) medal = '<i class="fas fa-medal text-orange-600"></i>';
+                    else medal = `<span class="text-gray-400 font-bold">#${index+1}</span>`;
+
+                    // Dicebear avatars for corporate look
+                    const avatarUrl = `https://api.dicebear.com/7.x/initials/svg?seed=${user.name}&backgroundColor=1F1A60,00A3E0,FF4F12`;
+
+                    const row = `
+                        <div class="bg-white p-3 rounded-xl card-shadow flex items-center gap-3 border border-gray-100">
+                            <div class="w-8 text-center text-lg">${medal}</div>
+                            
+                            <div class="w-10 h-10 rounded-full bg-gray-100 overflow-hidden shrink-0">
+                                <img src="${avatarUrl}" class="w-full h-full object-cover">
+                            </div>
+
+                            <div class="flex-1 min-w-0">
+                                <div class="text-sm font-bold text-gray-800 truncate">${user.name}</div>
+                                <div class="text-[10px] text-gray-500 truncate mb-1">${user.topic}</div>
+                                <audio src="${user.url}" controls class="h-6 w-full" style="margin:0;"></audio>
+                            </div>
+                            
+                            <div class="flex flex-col items-center px-2 border-l border-gray-100">
+                                <i class="fas fa-heart text-orange-500 text-sm mb-1"></i>
+                                <span class="text-sm font-bold text-gray-700">${user.votes}</span>
+                            </div>
+                        </div>
+                    `;
+                    list.innerHTML += row;
+                });
+
+            } catch(e) { list.innerHTML = '<div class="text-center text-red-400 mt-10">Ошибка загрузки</div>'; }
+        }
+    </script>
+</body>
+</html>
