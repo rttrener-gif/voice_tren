@@ -2,9 +2,14 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, viewport-fit=cover">
     <title>RT Sales Trainer</title>
+    
+    <!-- SDK for Telegram -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- SDK for VK -->
+    <script src="https://unpkg.com/@vkontakte/vk-bridge/dist/browser.min.js"></script>
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -23,6 +28,7 @@
             color: #1F2937; 
             font-family: 'Inter', sans-serif; 
             overflow: hidden; 
+            -webkit-tap-highlight-color: transparent;
         }
 
         /* Branding Header */
@@ -79,7 +85,7 @@
 </head>
 <body class="h-screen w-full flex flex-col relative">
 
-    <!-- MAIN MENU (START PAGE) -->
+    <!-- MAIN MENU -->
     <div id="view-menu" class="absolute inset-0 z-40 bg-white flex flex-col items-center justify-center p-6 text-center">
         <div class="mb-10 animate-bounce">
             <div class="w-28 h-28 rounded-full bg-[#7F00FF]/10 flex items-center justify-center border-2 border-[#7F00FF]/20">
@@ -99,13 +105,13 @@
         <button onclick="showLeaderboardFromMenu()" class="w-full max-w-xs py-4 bg-gray-100 rounded-xl font-bold uppercase tracking-wider text-gray-500 hover:bg-gray-200 transition-all">
             Рейтинг
         </button>
+        
+        <div id="platform-badge" class="mt-8 text-[10px] text-gray-300 uppercase tracking-widest">Web Version</div>
     </div>
 
-    <!-- ONBOARDING (INSTRUCTION) -->
+    <!-- ONBOARDING -->
     <div id="onboarding" class="absolute inset-0 z-50 overlay-bg flex flex-col items-center justify-center p-8 text-white hidden">
         <div class="w-full max-w-sm flex flex-col items-center text-center">
-            
-            <!-- Slide 1 -->
             <div class="onboarding-step fade-in" id="step-1">
                 <div class="w-24 h-24 rounded-full bg-[#7F00FF]/20 flex items-center justify-center mb-6 mx-auto border border-[#7F00FF]/40">
                     <i class="fas fa-gavel text-4xl text-[#7F00FF]"></i>
@@ -115,8 +121,6 @@
                     Слушай ответы коллег и выбирай, кто отработал возражение убедительнее.
                 </p>
             </div>
-
-            <!-- Slide 2 -->
             <div class="onboarding-step hidden fade-in" id="step-2">
                 <div class="w-24 h-24 rounded-full bg-white/10 flex items-center justify-center mb-6 mx-auto border border-white/20">
                     <i class="fas fa-microphone text-4xl text-[#FF7A00]"></i>
@@ -126,48 +130,35 @@
                     Получи кейс клиента и запиши свой ответ. Лучшие попадут в рейтинг недели.
                 </p>
             </div>
-
-            <!-- Dots -->
             <div class="flex gap-2 mb-8">
                 <div class="h-2 w-2 rounded-full bg-white/30 step-dot active" id="dot-1"></div>
                 <div class="h-2 w-2 rounded-full bg-white/30 step-dot" id="dot-2"></div>
             </div>
-
-            <button onclick="nextStep()" id="onboarding-btn" class="w-full py-4 bg-[#7F00FF] rounded-xl font-bold uppercase tracking-wider shadow-lg hover:bg-purple-600 transition-colors">
-                Далее
-            </button>
+            <button onclick="nextStep()" id="onboarding-btn" class="w-full py-4 bg-[#7F00FF] rounded-xl font-bold uppercase tracking-wider shadow-lg hover:bg-purple-600 transition-colors">Далее</button>
         </div>
     </div>
 
-    <!-- REGISTRATION FORM -->
+    <!-- REGISTRATION -->
     <div id="view-registration" class="absolute inset-0 z-50 bg-white flex flex-col items-center justify-center p-8 hidden">
         <div class="w-full max-w-sm slide-up">
             <h2 class="text-2xl font-bold text-[#1D1F26] mb-2 text-center">Знакомство</h2>
-            <p class="text-gray-400 text-sm text-center mb-8">Введите данные для отображения в рейтинге</p>
-
+            <p class="text-gray-400 text-sm text-center mb-8">Введите данные для рейтинга</p>
             <div class="mb-4">
                 <label class="block text-xs font-bold text-gray-400 uppercase mb-2">Ваш Город</label>
                 <input type="text" id="reg-city" placeholder="Москва" class="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl text-[#1D1F26] font-medium">
             </div>
-
             <div class="mb-8">
                 <label class="block text-xs font-bold text-gray-400 uppercase mb-2">Рабочая почта</label>
                 <input type="email" id="reg-email" placeholder="name@rt.ru" class="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl text-[#1D1F26] font-medium">
-                <p class="text-[10px] text-gray-300 mt-2 text-center">* Почта не будет видна другим пользователям</p>
             </div>
-
-            <button onclick="submitRegistration()" class="w-full py-4 bg-[#FF7A00] rounded-xl font-bold uppercase tracking-wider text-white shadow-lg shadow-orange-200 hover:bg-orange-600 transition-all">
-                Продолжить
-            </button>
+            <button onclick="submitRegistration()" class="w-full py-4 bg-[#FF7A00] rounded-xl font-bold uppercase tracking-wider text-white shadow-lg shadow-orange-200 hover:bg-orange-600 transition-all">Продолжить</button>
         </div>
     </div>
 
-    <!-- MAIN APP INTERFACE (HIDDEN BY DEFAULT) -->
+    <!-- APP CONTAINER -->
     <div id="app-container" class="hidden h-full flex flex-col">
-        <!-- Header -->
         <div class="rt-header pt-4 pb-3 px-4 shadow-sm z-20 relative">
             <div class="flex justify-between items-center mb-4">
-                <!-- IMAGE LOGO -->
                 <div class="flex items-center cursor-pointer" onclick="showMenu()">
                     <img src="./logo.png" alt="Онлайн Университет B2C" class="h-10 w-auto object-contain">
                 </div>
@@ -175,27 +166,21 @@
                     <span class="text-[10px] font-bold text-[#7F00FF] uppercase" id="step-label">...</span>
                 </div>
             </div>
-            <!-- Progress Bar -->
             <div class="w-full h-1 bg-gray-200 rounded-full overflow-hidden mb-1">
                 <div id="progress-line" class="h-full bg-[#7F00FF] w-0 transition-all duration-500 rounded-full"></div>
             </div>
         </div>
 
-        <!-- Main Content Area -->
         <div class="flex-1 relative overflow-hidden bg-[#F3F4F6]">
-            
-            <!-- VIEW: VOTING (BATTLE) -->
+            <!-- VOTE -->
             <div id="view-vote" class="absolute inset-0 flex flex-col p-4 pb-24 hidden fade-in overflow-y-auto">
                 <div class="text-center text-[10px] text-gray-400 font-bold mb-3 mt-2 uppercase tracking-widest">
                     Раунд <span id="vote-counter" class="text-[#1D1F26] text-sm">1</span> / <span id="vote-total">3</span>
                 </div>
-
                 <div class="flex-1 flex flex-col gap-4 relative justify-center">
                     <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-30 pointer-events-none">
                         <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center border-4 border-[#F3F4F6] shadow-xl text-sm font-black text-[#7F00FF] italic">VS</div>
                     </div>
-
-                    <!-- Card 1 -->
                     <div id="card-1" class="flex-1 bg-white rounded-2xl p-5 flex flex-col justify-between transition-all duration-300 card-shadow border-l-4 border-[#7F00FF] relative">
                         <div class="mb-2">
                             <div class="text-[9px] text-[#7F00FF] uppercase font-bold tracking-widest opacity-60">Возражение</div>
@@ -206,8 +191,6 @@
                             <button onclick="vote(0)" class="mt-4 w-full py-3 bg-[#F3E8FF] rounded-xl font-bold text-[10px] text-[#7F00FF] hover:bg-[#7F00FF] hover:text-white uppercase tracking-wider transition-all">Выбрать</button>
                         </div>
                     </div>
-
-                    <!-- Card 2 -->
                     <div id="card-2" class="flex-1 bg-white rounded-2xl p-5 flex flex-col justify-between transition-all duration-300 card-shadow border-l-4 border-[#FF7A00] relative">
                         <div class="flex flex-col items-center w-full order-2">
                             <button onclick="vote(1)" class="mb-4 w-full py-3 bg-[#FFF7ED] rounded-xl font-bold text-[10px] text-[#FF7A00] hover:bg-[#FF7A00] hover:text-white uppercase tracking-wider transition-all">Выбрать</button>
@@ -221,7 +204,7 @@
                 </div>
             </div>
 
-            <!-- VIEW: RECORDING -->
+            <!-- RECORD -->
             <div id="view-record" class="absolute inset-0 flex flex-col p-6 pb-24 hidden fade-in justify-center items-center text-center">
                 <div class="bg-white w-full p-8 rounded-3xl card-shadow relative overflow-hidden mb-10 border border-white/50">
                     <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-[#7F00FF] to-[#FF7A00]"></div>
@@ -238,7 +221,7 @@
                 </div>
             </div>
 
-            <!-- VIEW: LEADERBOARD -->
+            <!-- LEADERBOARD -->
             <div id="view-leaderboard" class="absolute inset-0 flex flex-col p-4 pb-24 hidden fade-in">
                 <h2 class="text-lg font-bold text-[#1D1F26] mb-4 pl-2 flex items-center gap-2">
                     <i class="fas fa-chart-line text-[#7F00FF]"></i> Топ сотрудников
@@ -247,7 +230,7 @@
                 <button onclick="showMenu()" class="mt-4 w-full py-3 bg-white border border-gray-200 rounded-xl text-gray-500 text-xs font-bold uppercase">В меню</button>
             </div>
 
-            <!-- VIEW: SUCCESS -->
+            <!-- SUCCESS -->
             <div id="view-success" class="absolute inset-0 flex flex-col justify-center items-center p-6 hidden fade-in z-30 bg-white/95 backdrop-blur-md">
                 <div class="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mb-6 shadow-lg shadow-green-500/20">
                     <i class="fas fa-check text-4xl text-green-500"></i>
@@ -258,7 +241,7 @@
             </div>
         </div>
 
-        <!-- Bottom Navigation -->
+        <!-- NAV -->
         <div class="absolute bottom-6 left-6 right-6 h-16 bg-white rounded-2xl card-shadow flex items-center justify-around z-40" id="bottom-menu">
             <button id="nav-battle" class="nav-btn active flex flex-col items-center gap-1 w-16">
                 <i class="fas fa-gavel text-lg"></i>
@@ -276,7 +259,6 @@
         </div>
     </div>
 
-    <!-- Loader -->
     <div id="loader" class="absolute inset-0 bg-white z-50 flex flex-col items-center justify-center hidden">
         <div class="w-10 h-10 border-4 border-gray-100 border-t-[#7F00FF] rounded-full animate-spin mb-4"></div>
         <div class="text-xs font-bold text-gray-400 uppercase tracking-widest">Загрузка...</div>
@@ -287,10 +269,6 @@
         // ВАЖНО: ВСТАВЬТЕ СЮДА ВАШУ ССЫЛКУ!
         const API_URL = 'https://functions.yandexcloud.net/d4e6md232ujcf62olr4o'; 
         
-        const tg = window.Telegram.WebApp;
-        tg.expand();
-        tg.enableClosingConfirmation();
-
         const SCENARIOS = [
             "У нас уже подключен другой провайдер, нас всё устраивает.",
             "Мне не нужно телевидение, я смотрю только YouTube.",
@@ -311,13 +289,62 @@
         let timerInterval;
         let currentScenarioText = "";
         let onboardingStep = 1;
-        
-        // User Data
         let userCity = "";
         let userEmail = "";
 
-        // --- NAVIGATION LOGIC ---
+        // --- PLATFORM DETECT (TG vs VK) ---
+        let platformUser = { id: 0, name: 'Сотрудник', avatar: null };
+        let currentPlatform = 'web';
 
+        async function initPlatform() {
+            // 1. Check Telegram
+            if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData) {
+                currentPlatform = 'telegram';
+                window.Telegram.WebApp.expand();
+                window.Telegram.WebApp.enableClosingConfirmation();
+                const tgUser = window.Telegram.WebApp.initDataUnsafe.user;
+                if(tgUser) {
+                    platformUser = {
+                        id: tgUser.id,
+                        name: tgUser.first_name,
+                        avatar: tgUser.photo_url
+                    };
+                }
+                document.getElementById('platform-badge').innerText = "Telegram App";
+                return;
+            }
+
+            // 2. Check VK
+            // Простая проверка: если мы в iframe ВК или есть vk-bridge
+            if (window.vkBridge) {
+                try {
+                    const bridge = window.vkBridge;
+                    await bridge.send("VKWebAppInit");
+                    currentPlatform = 'vk';
+                    
+                    // Получаем данные юзера ВК
+                    const vkInfo = await bridge.send("VKWebAppGetUserInfo");
+                    if (vkInfo) {
+                        platformUser = {
+                            id: vkInfo.id,
+                            name: vkInfo.first_name,
+                            avatar: vkInfo.photo_100 // VK avatar
+                        };
+                    }
+                    document.getElementById('platform-badge').innerText = "VK Mini App";
+                    return;
+                } catch(e) {
+                    console.log("Not VK or VK Init failed", e);
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await initPlatform();
+            // Rest of init is handled by UI interactions
+        });
+
+        // --- NAVIGATION ---
         function showMenu() {
             gameState = 'menu';
             document.getElementById('view-menu').classList.remove('hidden');
@@ -325,7 +352,6 @@
         }
 
         function checkRegistrationAndStart() {
-            // Check if user has registered before
             const savedCity = localStorage.getItem('rt_user_city');
             const savedEmail = localStorage.getItem('rt_user_email');
             
@@ -334,7 +360,6 @@
                 userEmail = savedEmail;
                 startGame();
             } else {
-                // Show Onboarding then Registration
                 document.getElementById('view-menu').classList.add('hidden');
                 document.getElementById('onboarding').classList.remove('hidden');
             }
@@ -345,7 +370,6 @@
             document.getElementById(`dot-${onboardingStep}`).classList.remove('active');
             onboardingStep++;
             if (onboardingStep > 2) {
-                // Go to Registration
                 document.getElementById('onboarding').classList.add('hidden');
                 document.getElementById('view-registration').classList.remove('hidden');
             } else {
@@ -358,17 +382,14 @@
         function submitRegistration() {
             const cityInput = document.getElementById('reg-city').value.trim();
             const emailInput = document.getElementById('reg-email').value.trim();
-
             if (!cityInput || !emailInput) {
-                tg.showAlert("Пожалуйста, заполните город и почту");
+                alert("Пожалуйста, заполните город и почту");
                 return;
             }
-
             userCity = cityInput;
             userEmail = emailInput;
             localStorage.setItem('rt_user_city', userCity);
             localStorage.setItem('rt_user_email', userEmail);
-
             document.getElementById('view-registration').classList.add('hidden');
             startGame();
         }
@@ -376,7 +397,6 @@
         function startGame() {
             document.getElementById('view-menu').classList.add('hidden');
             document.getElementById('app-container').classList.remove('hidden');
-            
             votesDone = 0;
             gameState = 'voting';
             updateUI();
@@ -391,14 +411,10 @@
             loadLeaderboard();
         }
 
-        // --- GAME LOGIC ---
-
         document.addEventListener('play', function(e){
             var audios = document.getElementsByTagName('audio');
             for(var i = 0, len = audios.length; i < len;i++){
-                if(audios[i] != e.target) {
-                    audios[i].pause();
-                }
+                if(audios[i] != e.target) audios[i].pause();
             }
         }, true);
 
@@ -438,7 +454,6 @@
                 setNavState(navBattle, false);
                 setNavState(navRecord, false, true);
                 setNavState(navLeaders, true);
-                // Allow switching back to battle if coming from menu
                 navLeaders.classList.add('active');
             }
         }
@@ -462,15 +477,9 @@
             }
         }
 
-        function switchView(viewId) {
-            ['view-vote', 'view-record', 'view-leaderboard', 'view-success'].forEach(v => document.getElementById(v).classList.add('hidden'));
-            document.getElementById(viewId).classList.remove('hidden');
-        }
-
-        // --- BATTLE ---
         async function loadBattle() {
             if(gameState !== 'voting') return;
-            switchView('view-vote');
+            document.getElementById('view-vote').classList.remove('hidden');
             document.getElementById('loader').classList.remove('hidden');
             try {
                 const response = await fetch(`${API_URL}?action=get-battle`);
@@ -484,8 +493,6 @@
                     currentRecords = data.records;
                     if (currentRecords[0].topic) document.getElementById('topic-1').innerText = currentRecords[0].topic;
                     if (currentRecords[1].topic) document.getElementById('topic-2').innerText = currentRecords[1].topic;
-                    
-                    // Force reload audio
                     const a1 = document.getElementById('audio-1');
                     const a2 = document.getElementById('audio-2');
                     a1.src = currentRecords[0].url;
@@ -501,7 +508,6 @@
 
         function vote(winnerIndex) {
             document.querySelectorAll('audio').forEach(a => { a.pause(); a.currentTime = 0; });
-            const winnerCard = document.getElementById(winnerIndex === 0 ? 'card-1' : 'card-2');
             const loserCard = document.getElementById(winnerIndex === 0 ? 'card-2' : 'card-1');
             loserCard.classList.add(winnerIndex === 0 ? 'fly-out-right' : 'fly-out-left');
             const winner = currentRecords[winnerIndex];
@@ -524,10 +530,10 @@
             }, 500);
         }
 
-        // --- RECORD ---
         function startScenarioMode() {
             if (gameState !== 'recording') return;
-            switchView('view-record');
+            ['view-vote', 'view-record', 'view-leaderboard', 'view-success'].forEach(v => document.getElementById(v).classList.add('hidden'));
+            document.getElementById('view-record').classList.remove('hidden');
             if (!currentScenarioText) {
                 currentScenarioText = SCENARIOS[Math.floor(Math.random() * SCENARIOS.length)];
                 document.getElementById('scenario-text').innerText = `"${currentScenarioText}"`;
@@ -540,7 +546,6 @@
                 try {
                     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                     let options = { mimeType: 'audio/webm' };
-                    // iOS fallback logic
                     if (!MediaRecorder.isTypeSupported('audio/webm')) {
                          options = { mimeType: 'audio/mp4' }; 
                          if(!MediaRecorder.isTypeSupported('audio/mp4')) options = undefined;
@@ -550,7 +555,7 @@
 
                     audioChunks = [];
                     mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
-                    mediaRecorder.onstop = () => uploadAudio(new Blob(audioChunks, { type: mediaRecorder.mimeType || 'audio/mp4' })); // Force mp4/webm type
+                    mediaRecorder.onstop = () => uploadAudio(new Blob(audioChunks, { type: mediaRecorder.mimeType || 'audio/mp4' }));
                     mediaRecorder.start();
                     isRecording = true;
                     document.getElementById('mic-icon').classList.replace('fa-microphone', 'fa-stop');
@@ -575,7 +580,7 @@
                 recordBtn.classList.remove('recording-pulse');
                 document.getElementById('recording-timer').classList.add('hidden');
                 document.getElementById('rec-hint').innerText = "Отправка...";
-                tg.MainButton.showProgress();
+                // tg.MainButton.showProgress();
             }
         });
 
@@ -584,32 +589,34 @@
             reader.readAsDataURL(blob); 
             reader.onloadend = async () => {
                 const base64Audio = reader.result;
-                const user = tg.initDataUnsafe?.user;
+                
+                // USE UNIVERSAL PLATFORM USER (TG or VK)
+                const finalUser = platformUser;
+
                 try {
                     const response = await fetch(`${API_URL}?action=upload`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                            user_id: user?.id || 999,
-                            first_name: user?.first_name || 'Сотрудник',
-                            username: user?.username || '',
+                            user_id: finalUser.id || 999,
+                            first_name: finalUser.name || 'Гость',
+                            username: '', // Not critical
                             audio_data: base64Audio,
                             mime_type: blob.type,
                             topic: currentScenarioText,
-                            city: userCity,    // Send City
-                            email: userEmail,  // Send Email
-                            avatar_url: user?.photo_url || '' // Send Avatar
+                            city: userCity,    
+                            email: userEmail,  
+                            avatar_url: finalUser.avatar || ''
                         })
                     });
                     const result = await response.json();
-                    tg.MainButton.hideProgress();
                     if (result.status === 'saved') {
-                        switchView('view-success');
+                        ['view-vote', 'view-record', 'view-leaderboard', 'view-success'].forEach(v => document.getElementById(v).classList.add('hidden'));
+                        document.getElementById('view-success').classList.remove('hidden');
                     } else {
                         alert("Ошибка: " + (result.error || 'Unknown'));
                     }
                 } catch (e) { 
-                    tg.MainButton.hideProgress(); 
                     alert("Ошибка сети"); 
                 }
             }
@@ -620,10 +627,11 @@
             updateUI();
         }
 
-        // --- LEADERBOARD ---
         async function loadLeaderboard() {
             if(gameState !== 'finished') return;
-            switchView('view-leaderboard');
+            ['view-vote', 'view-record', 'view-leaderboard', 'view-success'].forEach(v => document.getElementById(v).classList.add('hidden'));
+            document.getElementById('view-leaderboard').classList.remove('hidden');
+            
             const list = document.getElementById('leaders-list');
             list.innerHTML = '<div class="text-center text-gray-400 mt-10"><i class="fas fa-circle-notch fa-spin"></i> Загрузка...</div>';
             try {
@@ -641,22 +649,17 @@
                     else if(index === 2) medal = '<i class="fas fa-medal text-[#FF7A00]"></i>';
                     else medal = `<span class="text-gray-400 font-bold">#${index+1}</span>`;
 
-                    // Logic: Use real avatar if available, else generated one
                     let avatarSrc = user.avatar_url;
-                    if (!avatarSrc || avatarSrc === "null") {
+                    if (!avatarSrc || avatarSrc === "null" || avatarSrc === "undefined") {
                         avatarSrc = `https://api.dicebear.com/7.x/initials/svg?seed=${user.name}&backgroundColor=7F00FF,1D1F26,FF7A00`;
                     }
-
                     const cityBadge = user.city ? `<span class="text-[9px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded ml-1">${user.city}</span>` : '';
-
                     const row = `
                         <div class="bg-white p-3 rounded-xl card-shadow flex items-center gap-3 border border-gray-100">
                             <div class="w-8 text-center text-lg">${medal}</div>
-                            
                             <div class="w-10 h-10 rounded-full bg-gray-100 overflow-hidden shrink-0 border border-gray-200">
                                 <img src="${avatarSrc}" class="w-full h-full object-cover">
                             </div>
-
                             <div class="flex-1 min-w-0">
                                 <div class="flex items-center">
                                     <div class="text-sm font-bold text-[#1D1F26] truncate">${user.name}</div>
@@ -665,7 +668,6 @@
                                 <div class="text-[10px] text-gray-500 truncate mb-1">${user.topic}</div>
                                 <audio src="${user.url}" controls preload="none" class="h-6 w-full" style="margin:0;"></audio>
                             </div>
-                            
                             <div class="flex flex-col items-center px-2 border-l border-gray-100 min-w-[40px]">
                                 <i class="fas fa-heart text-[#7F00FF] text-xs mb-1"></i>
                                 <span class="text-sm font-bold text-gray-700">${user.votes}</span>
